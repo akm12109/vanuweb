@@ -34,6 +34,12 @@ interface Category {
   slug: string;
 }
 
+interface Service {
+    id: string;
+    name: string;
+    link: string;
+}
+
 export function Header() {
   const [isScrolled, setIsScrolled] = useState(false);
   const { language, setLanguage, translations } = useLanguage();
@@ -41,6 +47,7 @@ export function Header() {
   const { wishlistCount } = useWishlist();
   const [openStates, setOpenStates] = useState<{ [key: string]: boolean }>({});
   const [categories, setCategories] = useState<Category[]>([]);
+  const [services, setServices] = useState<Service[]>([]);
 
   const [user, loading] = useAuthState(auth);
   const { toast } = useToast();
@@ -48,16 +55,18 @@ export function Header() {
 
 
   useEffect(() => {
-    const fetchCategories = async () => {
+    const fetchNavData = async () => {
         try {
             const categoriesSnapshot = await getDocs(query(collection(db, 'categories'), orderBy('name')));
-            const categoriesData = categoriesSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Category));
-            setCategories(categoriesData);
+            setCategories(categoriesSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Category)));
+            
+            const servicesSnapshot = await getDocs(query(collection(db, 'services'), orderBy('createdAt')));
+            setServices(servicesSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Service)));
         } catch (error) {
-            console.error("Failed to fetch categories:", error);
+            console.error("Failed to fetch navigation data:", error);
         }
     }
-    fetchCategories();
+    fetchNavData();
   }, []);
 
   const handleOpenChange = (key: string, open: boolean) => {
@@ -86,6 +95,8 @@ export function Header() {
     ...categories.map(c => ({ href: `/products/${c.slug}`, label: c.name }))
   ];
 
+  const serviceLinks = services.map(s => ({ href: s.link, label: s.name }));
+
   const navLinks = [
     { href: "/", label: t.home },
     { href: "/about", label: t.about },
@@ -97,12 +108,7 @@ export function Header() {
     { 
       label: t.services,
       isDropdown: true,
-      items: [
-          { href: "/services", label: "Our Services" },
-          { href: "/kisan-card-application", label: "Kisan Card Application" },
-          { href: "/coordinator-application", label: "Coordinator Application" },
-          { href: "/kisan-jaivik-card", label: "Kisaan Jaivik Card" }
-      ]
+      items: serviceLinks.length > 0 ? serviceLinks : [{ href: "/services", label: "Our Services" }]
     },
     { href: "/customer-support", label: t.customerSupport },
   ];

@@ -1,7 +1,7 @@
 
 "use client"
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
@@ -16,19 +16,19 @@ import { Textarea } from "@/components/ui/textarea";
 import { Loader2 } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { db } from "@/lib/firebase";
-import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, addDoc, serverTimestamp, getDocs, query as firestoreQuery } from 'firebase/firestore';
 
-
-// Dummy data for dropdowns
-const districts = ["Godda", "Madhepura"];
-const blocks = {
-    "Godda": ["Godda Sadar", "Poreyahat", "Pathargama"],
-    "Madhepura": ["Madhepura", "Singheshwar", "Ghailadh"]
-};
+interface Location {
+    id: string; // District name
+    blocks: string[];
+}
 
 export default function CoordinatorApplicationPage() {
     const { toast } = useToast();
     const [isLoading, setIsLoading] = useState(false);
+    const [locations, setLocations] = useState<Location[]>([]);
+    const [loadingLocations, setLoadingLocations] = useState(true);
+
     const [formData, setFormData] = useState({
         fullName: '',
         fatherName: '',
@@ -66,6 +66,23 @@ export default function CoordinatorApplicationPage() {
         signature: null as File | null,
         passbook: null as File | null,
     });
+
+    useEffect(() => {
+        const fetchLocations = async () => {
+            setLoadingLocations(true);
+            try {
+                const q = firestoreQuery(collection(db, 'locations'));
+                const querySnapshot = await getDocs(q);
+                const locs = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Location));
+                setLocations(locs.sort((a, b) => a.id.localeCompare(b.id)));
+            } catch (error) {
+                toast({ variant: 'destructive', title: 'Failed to load locations' });
+            } finally {
+                setLoadingLocations(false);
+            }
+        };
+        fetchLocations();
+    }, [toast]);
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { id, value } = e.target;
@@ -161,8 +178,8 @@ export default function CoordinatorApplicationPage() {
                 <CardContent className="grid md:grid-cols-2 gap-6">
                     <div className="grid gap-2 md:col-span-2"><Label htmlFor="address">Complete Address</Label><Input id="address" value={formData.address} onChange={handleInputChange} required /></div>
                     <div className="grid gap-2"><Label htmlFor="state">State</Label><Input id="state" value={formData.state} readOnly /></div>
-                    <div className="grid gap-2"><Label htmlFor="district">District</Label><Select onValueChange={(v) => handleSelectChange('district', v)} value={formData.district} required><SelectTrigger><SelectValue placeholder="Select District" /></SelectTrigger><SelectContent>{districts.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}</SelectContent></Select></div>
-                    <div className="grid gap-2"><Label htmlFor="block">Block</Label><Select onValueChange={(v) => handleSelectChange('block', v)} value={formData.block} disabled={!formData.district} required><SelectTrigger><SelectValue placeholder="Select Block" /></SelectTrigger><SelectContent>{formData.district && blocks[formData.district as keyof typeof blocks].map(b => <SelectItem key={b} value={b}>{b}</SelectItem>)}</SelectContent></Select></div>
+                    <div className="grid gap-2"><Label htmlFor="district">District</Label><Select onValueChange={(v) => handleSelectChange('district', v)} value={formData.district} required disabled={loadingLocations}><SelectTrigger><SelectValue placeholder={loadingLocations ? "Loading..." : "Select District"} /></SelectTrigger><SelectContent>{locations.map(d => <SelectItem key={d.id} value={d.id}>{d.id}</SelectItem>)}</SelectContent></Select></div>
+                    <div className="grid gap-2"><Label htmlFor="block">Block</Label><Select onValueChange={(v) => handleSelectChange('block', v)} value={formData.block} disabled={!formData.district} required><SelectTrigger><SelectValue placeholder="Select Block" /></SelectTrigger><SelectContent>{formData.district && locations.find(l => l.id === formData.district)?.blocks.sort().map(b => <SelectItem key={b} value={b}>{b}</SelectItem>)}</SelectContent></Select></div>
                     <div className="grid gap-2"><Label htmlFor="panchayat">Panchayat / Village</Label><Input id="panchayat" value={formData.panchayat} onChange={handleInputChange} required /></div>
                     <div className="grid gap-2"><Label htmlFor="pinCode">Pin Code</Label><Input id="pinCode" value={formData.pinCode} onChange={handleInputChange} required /></div>
                     <div className="grid gap-2"><Label htmlFor="landmark">Nearby Landmark</Label><Input id="landmark" value={formData.landmark} onChange={handleInputChange} /></div>

@@ -7,7 +7,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth, db } from '@/lib/firebase';
 import { doc, onSnapshot, Timestamp } from 'firebase/firestore';
-import { Loader2, LogOut, LayoutDashboard, ShoppingBag, ListOrdered, SlidersHorizontal, Users, FileText, ChevronDown, ClipboardList, ShieldAlert, Wrench, Shapes, Truck } from 'lucide-react';
+import { Loader2, LogOut, LayoutDashboard, ShoppingBag, ListOrdered, SlidersHorizontal, Users, FileText, ChevronDown, ClipboardList, ShieldAlert, Wrench, Shapes, Truck, MapPin } from 'lucide-react';
 import { Logo } from '@/components/logo';
 import { Sidebar, SidebarContent, SidebarHeader, SidebarInset, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarProvider, SidebarMenuSub, SidebarMenuSubButton, SidebarMenuSubItem } from '@/components/ui/sidebar';
 import { AdminHeader } from '@/components/admin-header';
@@ -149,67 +149,94 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                         </CollapsibleContent>
                       </Collapsible>
                     </SidebarMenuItem>
-                     <SidebarMenuItem>
-                        <Link href="/admin/users" passHref>
-                            <SidebarMenuButton tooltip="Users">
-                                <Users />
-                                Users
-                            </SidebarMenuButton>
-                        </Link>
-                    </SidebarMenuItem>
-                    <SidebarMenuItem>
-                        <Link href="/admin/employees" passHref>
-                            <SidebarMenuButton tooltip="Employees">
-                                <Users />
-                                Employees
-                            </SidebarMenuButton>
-                        </Link>
-                    </SidebarMenuItem>
-                    <SidebarMenuItem>
-                        <Link href="/admin/tasks" passHref>
-                            <SidebarMenuButton tooltip="Tasks">
-                                <ClipboardList />
-                                Tasks
-                            </SidebarMenuButton>
-                        </Link>
-                    </SidebarMenuItem>
-                    <SidebarMenuItem>
-                        <Link href="/admin/slideshow" passHref>
-                            <SidebarMenuButton tooltip="Slideshow">
-                                <SlidersHorizontal />
-                                Slideshow
-                            </SidebarMenuButton>
-                        </Link>
-                    </SidebarMenuItem>
-                     <SidebarMenuItem>
-                        <Link href="/admin/coordinators" passHref>
-                            <SidebarMenuButton tooltip="Coordinators">
-                                <Users />
-                                Coordinators
-                            </SidebarMenuButton>
-                        </Link>
-                    </SidebarMenuItem>
                     <SidebarMenuItem asChild>
                       <Collapsible>
                         <SidebarMenuButton asChild>
                            <CollapsibleTrigger className="w-full">
                             <FileText />
-                              Services
+                              Content
+                            <ChevronDown className="ml-auto h-4 w-4 transition-transform group-data-[state=open]:rotate-180" />
+                          </CollapsibleTrigger>
+                        </SidebarMenuButton>
+                        <CollapsibleContent asChild>
+                          <SidebarMenuSub>
+                             <SidebarMenuSubItem>
+                                <Link href="/admin/slideshow" passHref>
+                                    <SidebarMenuSubButton>Slideshow</SidebarMenuSubButton>
+                                </Link>
+                            </SidebarMenuSubItem>
+                             <SidebarMenuSubItem>
+                                <Link href="/admin/services" passHref>
+                                    <SidebarMenuSubButton>Services</SidebarMenuSubButton>
+                                </Link>
+                            </SidebarMenuSubItem>
+                          </SidebarMenuSub>
+                        </CollapsibleContent>
+                      </Collapsible>
+                    </SidebarMenuItem>
+                    <SidebarMenuItem asChild>
+                      <Collapsible>
+                        <SidebarMenuButton asChild>
+                           <CollapsibleTrigger className="w-full">
+                            <Users />
+                              People
                             <ChevronDown className="ml-auto h-4 w-4 transition-transform group-data-[state=open]:rotate-180" />
                           </CollapsibleTrigger>
                         </SidebarMenuButton>
                         <CollapsibleContent asChild>
                           <SidebarMenuSub>
                             <SidebarMenuSubItem>
-                              <Link href="/admin/services/kcc-applications" passHref>
-                                <SidebarMenuSubButton>KCC Applications</SidebarMenuSubButton>
-                              </Link>
+                                <Link href="/admin/users" passHref>
+                                    <SidebarMenuSubButton>Users</SidebarMenuSubButton>
+                                </Link>
+                            </SidebarMenuSubItem>
+                             <SidebarMenuSubItem>
+                                <Link href="/admin/employees" passHref>
+                                    <SidebarMenuSubButton>Employees</SidebarMenuSubButton>
+                                </Link>
+                            </SidebarMenuSubItem>
+                             <SidebarMenuSubItem>
+                                <Link href="/admin/coordinators" passHref>
+                                    <SidebarMenuSubButton>Coordinators</SidebarMenuSubButton>
+                                </Link>
                             </SidebarMenuSubItem>
                           </SidebarMenuSub>
                         </CollapsibleContent>
                       </Collapsible>
                     </SidebarMenuItem>
-
+                    <SidebarMenuItem asChild>
+                      <Collapsible>
+                        <SidebarMenuButton asChild>
+                           <CollapsibleTrigger className="w-full">
+                            <ClipboardList />
+                              Applications
+                            <ChevronDown className="ml-auto h-4 w-4 transition-transform group-data-[state=open]:rotate-180" />
+                          </CollapsibleTrigger>
+                        </SidebarMenuButton>
+                        <CollapsibleContent asChild>
+                          <SidebarMenuSub>
+                             <SidebarMenuSubItem>
+                                <Link href="/admin/services/kcc-applications" passHref>
+                                    <SidebarMenuSubButton>KCC Applications</SidebarMenuSubButton>
+                                </Link>
+                             </SidebarMenuSubItem>
+                              <SidebarMenuSubItem>
+                                <Link href="/admin/tasks" passHref>
+                                    <SidebarMenuSubButton>Tasks</SidebarMenuSubButton>
+                                </Link>
+                            </SidebarMenuSubItem>
+                          </SidebarMenuSub>
+                        </CollapsibleContent>
+                      </Collapsible>
+                    </SidebarMenuItem>
+                    <SidebarMenuItem>
+                        <Link href="/admin/locations" passHref>
+                            <SidebarMenuButton tooltip="Locations">
+                                <MapPin />
+                                Locations
+                            </SidebarMenuButton>
+                        </Link>
+                    </SidebarMenuItem>
                     <SidebarMenuItem>
                         <SidebarMenuButton onClick={() => auth.signOut()}>
                             <LogOut />

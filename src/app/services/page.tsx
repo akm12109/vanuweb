@@ -1,32 +1,48 @@
+
+"use client";
+
 import Image from "next/image";
 import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Leaf, Users, HeartHandshake } from "lucide-react";
+import { Leaf, Users, HeartHandshake, Loader2 } from "lucide-react";
 import { ServiceSlideshow } from "@/components/service-slideshow";
+import { useState, useEffect } from "react";
+import { collection, query, orderBy, getDocs } from "firebase/firestore";
+import { db } from "@/lib/firebase";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+
+interface Service {
+    id: string;
+    name: string;
+    description: string;
+    imageUrl: string;
+    aiHint: string;
+    link: string;
+}
 
 export default function ServicesPage() {
-  const services = [
-    {
-      name: "Soil Testing",
-      description: "Understand your soil's health with our comprehensive testing and analysis services.",
-      image: "https://placehold.co/400x300.png",
-      aiHint: "soil testing kit",
-    },
-    {
-      name: "Farming Consultation",
-      description: "We provide expert consultation for farmers looking to improve yield and transition to fully organic methods.",
-      image: "https://placehold.co/400x300.png",
-      aiHint: "farmer talking consultant",
-    },
-    {
-      name: "Custom Fertilizer Blends",
-      description: "Get custom-blended organic fertilizers tailored to your specific crop and soil needs.",
-      image: "https://placehold.co/400x300.png",
-      aiHint: "mixing fertilizers",
-    },
-  ];
+    const [services, setServices] = useState<Service[]>([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchServices = async () => {
+            setLoading(true);
+            try {
+                const q = query(collection(db, "services"), orderBy("createdAt", "desc"));
+                const querySnapshot = await getDocs(q);
+                const servicesData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Service));
+                setServices(servicesData);
+            } catch (error) {
+                console.error("Error fetching services:", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchServices();
+    }, []);
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
@@ -45,20 +61,28 @@ export default function ServicesPage() {
                 <ServiceSlideshow />
             </div>
 
-            <div className="mt-24 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-              {services.map((service) => (
-                <Card key={service.name} className="transform transition-transform duration-300 hover:scale-105 hover:shadow-xl">
-                  <CardHeader className="p-0">
-                    <div className="w-full h-48 relative">
-                      <Image src={service.image} alt={service.name} layout="fill" objectFit="cover" className="rounded-t-lg" data-ai-hint={service.aiHint} />
+            <div className="mt-24">
+                {loading ? (
+                    <div className="flex justify-center"><Loader2 className="h-8 w-8 animate-spin" /></div>
+                ) : (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+                        {services.map((service) => (
+                           <Link key={service.id} href={service.link || "#"} className="group">
+                             <Card className="h-full transform transition-transform duration-300 group-hover:scale-105 group-hover:shadow-xl">
+                               <CardHeader className="p-0">
+                                 <div className="w-full h-48 relative">
+                                   <Image src={service.imageUrl} alt={service.name} layout="fill" objectFit="cover" className="rounded-t-lg" data-ai-hint={service.aiHint} />
+                                 </div>
+                               </CardHeader>
+                               <CardContent className="p-6">
+                                 <h3 className="text-lg font-semibold font-headline">{service.name}</h3>
+                                 <p className="mt-2 text-sm text-muted-foreground">{service.description}</p>
+                               </CardContent>
+                             </Card>
+                           </Link>
+                        ))}
                     </div>
-                  </CardHeader>
-                  <CardContent className="p-6">
-                    <h3 className="text-lg font-semibold font-headline">{service.name}</h3>
-                    <p className="mt-2 text-sm text-muted-foreground">{service.description}</p>
-                  </CardContent>
-                </Card>
-              ))}
+                )}
             </div>
           </div>
         </section>
