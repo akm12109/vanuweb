@@ -59,7 +59,7 @@ export function ProductCard({ product }: ProductCardProps) {
 
     return (
         <div className="group relative overflow-hidden rounded-lg bg-transparent">
-             <Link href={`/products/${product.id}`} className="absolute inset-0 z-10" aria-label={`View details for ${product.name}`}>
+             <Link href={`/products/item/${product.id}`} className="absolute inset-0 z-10" aria-label={`View details for ${product.name}`}>
                 <span className="sr-only">View Details</span>
             </Link>
             <div className="relative w-full aspect-[4/3] bg-card rounded-t-lg">
@@ -94,7 +94,7 @@ export function ProductCard({ product }: ProductCardProps) {
                         <ShoppingCart className="h-4 w-4" />
                     </Button>
                     <Button asChild size="icon" variant="secondary" className="rounded-full h-8 w-8 bg-background/80 hover:bg-background">
-                       <Link href={`/products/${product.id}`}>
+                       <Link href={`/products/item/${product.id}`}>
                            <Eye className="h-4 w-4" />
                        </Link>
                     </Button>

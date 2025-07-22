@@ -80,7 +80,7 @@ export function SearchPopover() {
                             {searchTerm && filteredProducts.length > 0 ? (
                                 filteredProducts.map(product => (
                                     <Link 
-                                        href={`/products/${product.id}`} 
+                                        href={`/product/${product.id}`} 
                                         key={product.id} 
                                         className="flex items-center gap-4 hover:bg-accent p-2 rounded-md"
                                         onClick={() => setOpen(false)}
